@@ -1,0 +1,66 @@
+#Example of how to change parameres of DNA
+
+
+from VMD import *
+from Molecule import *
+from atomsel import *
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import sys
+import os
+
+import pandas as pd
+
+sys.path.append('/Volumes/MDBD/Dropbox/work/MYSOFT/X3DNA_analysis_modeling')
+sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
+
+
+from dna_param import X3DNA_find_pair, X3DNA_analyze_bp_step,build_dna
+
+
+# from collections import OrderedDict
+#import sys
+
+#Let's define data frame panel
+panel_dict_contacts={}
+
+startTime = datetime.now()
+
+mol=Molecule()
+
+mol.load("1kx5.pdb")
+
+DNA=atomsel("nucleic and noh")
+
+df=X3DNA_analyze_bp_step(DNA,X3DNA_find_pair(DNA))
+
+# df['Roll']=0
+# df['Slide']=0
+build_dna(df,'NEW_PDB.pdb',['A']*147)
+
+df['Tilt']=0
+df['Shift']=0
+
+
+mol.delete()
+build_dna(df,'NEW_PDB2.pdb',['A']*147)
+
+mol=Molecule()
+mol.load('NEW_PDB.pdb')
+
+mol2=Molecule()
+mol2.load('NEW_PDB2.pdb')
+
+print df.head()
+
+# df2.to_csv('../analysis_data/dna2_param_df_cryst.csv',index=False)
+
+
+
+print "Execution time:"
+print(datetime.now()-startTime)
+
+# exit()
+
+

@@ -1,0 +1,454 @@
+material change opacity Diffuse 0
+material change opacity AOShiny 0.8
+vmdrestoremymaterials
+
+# Display settings
+display ambientoclussion on
+display depthcue off
+display aoambient value 0.8
+display aodirect value 0.3
+display shadows on
+display antialias on
+display resize 800 600
+display eyesep       0.960000
+display focallength  6.000000
+display height       6.000000
+display distance     -2.000000
+display projection   Orthographic
+display nearclip set 0.480000
+display farclip  set 18.070000
+display depthcue   on
+display cuestart   0.500000
+display cueend     10.000000
+display cuedensity 0.320000
+display cuemode    Linear
+
+color scale method RWB
+color change rgb  0 0.1 0.2 0.7 ;# blue
+color change rgb  1 0.7 0.2 0.1 ;# red
+color change rgb  3 0.7 0.4 0.0 ;# orange
+color change rgb  4 0.8 0.7 0.1 ;# yellow
+color change rgb  7 0.1 0.7 0.2 ;# green
+color change rgb 10 0.1 0.7 0.8 ;# cyan
+color change rgb 11 0.6 0.1 0.6 ;# purple
+
+color Display Background white
+color Display BackgroundTop white
+color Display BackgroundBot blue2
+ 
+  
+color change rgb 23 0.550000011920929 0.7099999785423279 0.9800000190734863
+
+#Задаем значения ГЛБ в массив
+set aa(TRP) 1.000
+set aa(ILE) 0.890
+set aa(PHE) 0.886
+set aa(LEU) 0.861
+set aa(MET) 0.749
+set aa(VAL) 0.745
+set aa(CYS) 0.696
+set aa(TYR) 0.682
+set aa(PRO) 0.495
+set aa(ALA) 0.521
+set aa(THR) 0.508
+set aa(HIS) 0.477
+set aa(GLY) 0.445
+set aa(SER) 0.436
+set aa(GLN) 0.391
+set aa(ASN) 0.302
+set aa(LYS) 0.201
+set aa(ARG) 0.197
+set aa(GLU) 0.020
+set aa(ASP) 0.000
+
+#Задаем максимальные и минимальные значения цветов палитры аминокислот в RGB 
+# r(ed) g(reen) b(lue) 0 значения для полярных 255 значения для неполярных
+set rh0 0
+set gh0 72
+set bh0 255
+set rh1 255
+set gh1 227
+set bh1 0
+
+set r0 [expr {double($rh0)/255} ]
+set r1 [expr {double($rh1)/255} ]
+set g0 [expr {double($gh0)/255} ]
+set g1 [expr {double($gh1)/255} ]
+set b0 [expr {double($bh0)/255} ]
+set b1 [expr {double($bh1)/255} ]
+
+set num 40
+foreach i [lsort [array names aa] ] {
+color Resname $i $num
+color change rgb $num [expr $r0+$aa($i)*($r1-$r0)] [expr $g0+$aa($i)*($g1-$g0)] [expr $b0+$aa($i)*($b1-$b0)]
+incr num 1
+}
+
+ 
+mol new h3_1.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 31
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h3_1.pdb
+# done with molecule 0
+
+
+
+mol new h3_2.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 31
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h3_2.pdb
+# done with molecule 1
+
+
+
+mol new h4_1.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 18
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h4_1.pdb
+# done with molecule 2
+
+
+
+mol new h4_2.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 18
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h4_2.pdb
+# done with molecule 3
+
+
+mol new h2a_1.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 13
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h2a_1.pdb
+# done with molecule 4
+
+
+mol new h2a_2.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 13
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h2a_2.pdb
+# done with molecule 5
+
+
+mol new h2b_1.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 22
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h2b_1.pdb
+# done with molecule 6
+
+
+mol new h2b_2.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 0.840000 10.000000 2.630000 0
+mol color ColorID 22
+mol selection {all}
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol rename top h2b_2.pdb
+# done with molecule 7
+
+
+mol new DNA.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation NewCartoon 1.090000 10.000000 2.070000 1
+mol color ColorID 6
+mol selection {all and backbone }
+mol material AOChalky
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+mol representation Licorice 0.300000 10.000000 10.000000
+mol color ResID
+mol selection {all and not backbone }
+mol material AOShiny
+mol addrep top
+mol selupdate 1 top 0
+mol colupdate 1 top 0
+mol scaleminmax top 1 0.000000 0.000000
+mol smoothrep top 1 0
+mol rename top DNA.pdb
+# done with molecule 8
+
+mol new 1KX5.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation MSMS 1.400000
+mol color ResName
+mol selection {all and protein}
+mol material AOShiny
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+scale by 1.5
+#done with mol 9
+
+scale to 0.019
+translate by 0 -0.4 0
+axes location lowerright
+
+
+# ================= movie starts ==================== 
+
+mol new
+mol fix 10
+draw color 31
+draw text {-100 90 0} "Histones H3" size 1.5 thickness 3
+set fc 0
+mol off all
+mol on 10
+render Tachyon dat/$fc.dat
+incr fc 1
+
+
+
+# h3_1-2 = 1------------------------------------
+
+mol on 0
+mol on 1
+mol modmaterial 0 0 Diffuse
+mol modmaterial 0 1 Diffuse
+for {set r 1} {$r < 10} {incr r 1} {
+display update
+rotate y by -1
+material change opacity Diffuse 0.$r
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+mol modmaterial 0 0 AOChalky
+mol modmaterial 0 1 AOChalky
+material change opacity Diffuse 0
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+
+for {set i 0} {$i < 170 } {incr i 1} {
+display update
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+
+# h4_1-2 = 2------------------------------------
+draw color 18
+draw text {-100 85 0} "Histones H4" size 1.5 thickness 3
+mol on 2
+mol on 3
+mol modmaterial 0 2 Diffuse
+mol modmaterial 0 3 Diffuse
+for {set r 1} {$r < 10} {incr r 1} {
+display update
+material change opacity Diffuse 0.$r
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+mol modmaterial 0 2 AOChalky
+mol modmaterial 0 3 AOChalky
+material change opacity Diffuse 0
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+
+for {set i 0} {$i < 170 } {incr i 1} {
+display update
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+
+
+# h2a 1-2 = 3------------------------------------
+draw color 13
+draw text {-100 80 0} "Histones H2a" size 1.5 thickness 3
+mol on 4
+mol on 5
+mol modmaterial 0 4 Diffuse
+mol modmaterial 0 5 Diffuse
+for {set r 1} {$r < 10} {incr r 1} {
+display update
+material change opacity Diffuse 0.$r
+rotate x by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+mol modmaterial 0 4 AOChalky
+mol modmaterial 0 5 AOChalky
+material change opacity Diffuse 0
+rotate x by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+
+for {set i 0} {$i < 170 } {incr i 1} {
+display update
+rotate x by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+
+
+# h2b_1-2 = 4------------------------------------
+draw color 22
+draw text {-100 75 0} "Histones H2b" size 1.5 thickness 3
+mol on 6
+mol on 7
+mol modmaterial 0 6 Diffuse
+mol modmaterial 0 7 Diffuse
+for {set r 1} {$r < 10} {incr r 1} {
+display update
+material change opacity Diffuse 0.$r
+rotate x by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+mol modmaterial 0 6 AOChalky
+mol modmaterial 0 7 AOChalky
+material change opacity Diffuse 0
+rotate x by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+
+for {set i 0} {$i < 170 } {incr i 1} {
+display update
+rotate x by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+
+
+# DNA = 5------------------------------------
+draw color 6
+draw text {-100 70 0} "DNA" size 1.5 thickness 3
+mol on 8
+mol modmaterial 0 8 Diffuse
+for {set r 1} {$r < 8} {incr r 1} {
+display update
+material change opacity Diffuse 0.$r
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+mol modmaterial 0 8 AOShiny
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+
+for {set i 0} {$i < 352 } {incr i 1} {
+display update
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+mol on 9
+mol modmaterial 0 9 Diffuse
+for {set r 1} {$r < 30} {incr r 1} {
+display update
+rotate y by -1
+material change opacity Diffuse [expr {double($r)/29}]
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+mol off all
+mol on 8
+mol on 9
+mol on 10
+for {set i 0} {$i < 151} {incr i 1} {
+display update
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+
+#-------------------
+
+for {set r 1} {$r < 8} {incr r 1} {
+display update
+material change opacity AOShiny [expr 0.8-0.$r]
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+mol off 8
+
+render Tachyon dat/$fc.dat
+incr fc 1
+for {set i 0} {$i < 172 } {incr i 1} {
+display update
+rotate y by -1
+render Tachyon dat/$fc.dat
+incr fc 1
+}
+#--------------------------------------------
+exit

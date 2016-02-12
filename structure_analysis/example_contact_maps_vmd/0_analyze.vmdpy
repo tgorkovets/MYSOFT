@@ -1,0 +1,142 @@
+#This script should perform the full analysis of a sample protein.
+#Including vizualization, calcualtion of secondary structure and contacts,
+#output of annotated sequences.
+
+#Import VMD libs
+from VMD import *
+from Molecule import *
+from atomsel import *
+from animate import *
+
+#Import general Python and data analysis libs
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import itertools
+import sys
+
+#Biopython libraries
+from Bio.Align import MultipleSeqAlignment
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+
+sys.path.append('/Volumes/MDBD/Dropbox/work/MYSOFT/structure_analysis')
+sys.path.append('/Volumes/MDBD/Dropbox/work/MYSOFT/ALIGNMENT_TOOLS')
+
+#Helper functions
+from aa_name_conv import three2one
+
+#Import custom libraries to get contacts and interactions from lists of atom coordinates
+from int_analyze import find_contacts, find_hbonds, find_watermed_bonds, find_watermed_bonds2, find_ionmed_bonds
+
+#Import wrapper libraries to get contacts from VMD selections
+from vmd_int_analyze import get_contacts
+from vmd_int_analyze import get_hbonds, get_hbonds_imp, get_salt_bridges_imp, get_watermed_bonds_imp, get_ionmed_bonds_imp
+
+#Import libraries that make annotated sequence images, and plot bargraphs on top of them.
+from L_shade_aln import shade_aln2png,feature_str2dict
+from L_plot4seq import *
+
+#Let's load the molecule
+
+mol=Molecule()
+mol.load("1KQ2")
+
+#Let's do simple analysis and get its protein secondary structure
+PROT=atomsel("protein")
+NUCL=atomsel("nucleic")
+
+prot_chains=set(PROT.get('chain'))
+nucl_chains=set(NUCL.get('chain'))
+chain_length={}
+chain_structure={}
+chain_sequence={}
+chain_num_offset={} #resid of first residue
+
+for c in prot_chains:
+	chain_length[c]=len(set(atomsel("protein and chain "+c).get('resid')))
+	chain_structure[c]=atomsel("protein and chain %s and name CA"%c).get('structure')
+	chain_sequence[c]=three2one(atomsel("protein and chain %s and name CA"%c).get('resname'))
+	chain_num_offset[c]=min(atomsel("protein and chain %s and name CA"%c).get('resid'))
+	assert len(chain_sequence[c])==chain_length[c], "sequence length (%d) unequal to length (%d) in chain %s "%(len(chain_sequence[c]),chain_length[c],c)
+	assert len(chain_structure[c])==chain_length[c], "structure length (%d) unequal to length (%d) in chain %s "%(len(chain_structure[c]),chain_length[c],c)
+
+for c in nucl_chains:
+	chain_length[c]=len(set(atomsel("nucleic and chain "+c).get('resid')))
+	chain_structure[c]=atomsel("nucleic and chain %s and name C1'"%c).get('structure')
+	chain_sequence[c]=three2one(atomsel("nucleic and chain %s and name C1'"%c).get('resname'))
+	chain_num_offset[c]=min(atomsel("nucleic and chain %s and name C1'"%c).get('resid'))
+	assert len(chain_sequence[c])==chain_length[c], "sequence length (%d) unequal to length (%d) in chain %s "%(len(chain_sequence[c]),chain_length[c],c)
+	assert len(chain_structure[c])==chain_length[c], "structure length (%d) unequal to length (%d) in chain %s "%(len(chain_structure[c]),chain_length[c],c)
+
+
+print "===========Structure summary============="
+print "Protein chains detected (residue number): "," ".join(["{}({})".format(c,chain_length[c]) for c in prot_chains])
+print "Nucleic chains detected (residue number): "," ".join(["{}({})".format(c,chain_length[c]) for c in nucl_chains])
+
+
+#####Now let's get contacts and collapse it onto residues####
+
+#All atom-atom contacts
+contacts=get_contacts(atomsel("(protein or nucleic)"),atomsel("(protein or nucleic)"),chainfield='chain',columns=['chain1','chain1_resid','chain1_atom','chain2','chain2_resid','chain2_atom','type','param1'],code='SC',exclude_bonded=True,d_threshold=4.0,half_matrix=False)
+#collapse to residue-residue contacts
+rc=contacts.groupby(['chain1','chain1_resid','chain2','chain2_resid'])['type'].agg(['count']).reset_index()
+# and remove residue-residue self interactions
+# and obtain new residue-residue contacts
+res_res_contacts=rc.drop(rc[(rc.chain1==rc.chain2)&(rc.chain1_resid==rc.chain2_resid)].index)
+
+#Here is important step, we have to fill zeroz for residues that do not have contacts.
+
+#get total contacts per residue with all chains
+tot_res_contacts=res_res_contacts.groupby(['chain1','chain1_resid'])['count'].agg([np.sum]).reset_index()
+#We need to add zeroz to the residue that did not show up in contact search
+for c in prot_chains.union(nucl_chains):
+	tot_res_contacts.append(pd.DataFrame({'chain1':[c]*chain_length[c],'chain1_resid':range(chain_num_offset[c],chain_num_offset[c]+chain_length[c]),'sum':[0]*chain_length[c]}),ignore_index=True)
+tot_res_contacts=tot_res_contacts.groupby(['chain1','chain1_resid'])['sum'].agg([np.sum]).reset_index()
+
+# print tot_res_contacts[tot_res_contacts.chain1=='A']['sum'].tolist()
+
+
+#####Let's try to output contact maps
+for c1 in prot_chains.union(nucl_chains):
+	for c2 in prot_chains.union(nucl_chains):
+		df=res_res_contacts[((res_res_contacts.chain1 == c1)&(res_res_contacts.chain2 == c2))]
+		df.rename(columns={'chain1_resid': 'Resid1', 'chain2_resid': 'Resid2','count':'Value'}, inplace=True)
+
+		seq1=MultipleSeqAlignment([SeqRecord(Seq("".join(chain_sequence[c1])),id='seq',name='seq')])
+		seq2=MultipleSeqAlignment([SeqRecord(Seq("".join(chain_sequence[c2])),id='seq',name='seq')])
+		plot_mat4seq(filename='output/cont_map_%s_%s'%(c1,c2),data=df,seq1=seq1,seq1lab='Chain %s'%c1,seq1offset=chain_num_offset[c1],features1=feature_str2dict(''.join(chain_structure[c1]),position='bottom'),seq2=seq2,seq2lab='Chain %s'%c2,seq2offset=chain_num_offset[c2],features2=feature_str2dict(''.join(chain_structure[c2])),title='Contact map chain %s(x) vs chain %s(y)'%(c1,c2))
+
+#######Let's try to output sequence with secondary structure via texshade and contact profiles
+
+for c in prot_chains.union(nucl_chains):
+
+	seqmsa=MultipleSeqAlignment([SeqRecord(Seq("".join(chain_sequence[c])),id='seq',name='seq')])
+	shade_aln2png(seqmsa,filename="output/seq_chain%s.png"%c,shading_modes=['charge_functional'], legend=False, features=feature_str2dict(''.join(chain_structure[c]),position='bottom'),title='Sequence of chain %s'%c,logo=False,hideseqs=False,splitN=20,setends=[],ruler=False,show_seq_names=False,show_seq_length=False)
+	plot_prof4seq(filename="output/contacts_chain%s.png"%c,profile=tot_res_contacts[tot_res_contacts.chain1==c]['sum'].tolist(),seqmsa=seqmsa,features=feature_str2dict(''.join(chain_structure[c]),position='bottom'),axis='Numcont',title='Number of contacts per residue, chain %s'%c)
+
+######Finally some high quality vizualization
+#Let's do it in a separate file
+
+
+# raise "Error"
+exit()
+# from collections import OrderedDict
+#import sys
+
+# ######Let's try to determine beta-sheets in protein chains - experimental
+# # bsh_cont=get_contacts(atomsel("(protein and backbone and name O)"),atomsel("(protein and backbone and name N)"),chainfield='chain',columns=['chain1','chain1_resid','chain1_atom','chain2','chain2_resid','chain2_atom','type','param1'],code='SC',exclude_bonded=True,d_threshold=4.0)
+# # bsh_cont=bsh_cont.drop(bsh_cont[(bsh_cont.chain1==bsh_cont.chain2)&(bsh_cont.chain1_resid==bsh_cont.chain2_resid)].index)
+# # l1=bsh_cont[(bsh_cont.chain1=='A') & (bsh_cont.chain1=='A')]['chain1_resid']
+# # l2=bsh_cont[(bsh_cont.chain1=='A') & (bsh_cont.chain1=='A')]['chain2_resid']
+
+# # f=[{'style':'o-o[0.1mm]','sel':[int(n1)-chain_num_offset['A'],int(n2)-chain_num_offset['A']], 'position':(t%4)*'t'+'top'} for n1,n2,t in zip(l1,l2,range(len(l1)))]
+
+# # f.extend(feature_str2dict(''.join(chain_structure['A']),position='bottom'))
+
+# # shade_aln2png(MultipleSeqAlignment([SeqRecord(Seq("".join(chain_sequence['A'])),id='seq',name='seq')]),filename="output/def.png",\
+# # shading_modes=['charge_functional'], legend=False, features=f,\
+# # title='Sequence of chain A',logo=False,hideseqs=False,splitN=20,setends=[],ruler=False,show_seq_names=False,show_seq_length=False)
+
+
+

@@ -1,0 +1,55 @@
+#Example of how to change DNA sequence in nucleosome
+# via VMD library
+
+
+from VMD import *
+from Molecule import *
+from atomsel import *
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import sys
+import os
+
+import pandas as pd
+
+sys.path.append('/Volumes/MDBD/Dropbox/work/MYSOFT/X3DNA_analysis_modeling')
+sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
+
+
+from dna_param import X3DNA_analyze_bp_step, gen_bp_step,build_dna
+from dna_param import X3DNA_find_pair
+from dna_param import CURVES_analyze
+
+
+# from collections import OrderedDict
+#import sys
+
+#Let's define data frame panel
+panel_dict_contacts={}
+
+startTime = datetime.now()
+
+mol=Molecule()
+
+mol.load("1kx5.pdb")
+
+DNA=atomsel("nucleic and noh")
+
+ref_fp_id=X3DNA_find_pair(DNA)
+df=X3DNA_analyze_bp_step(DNA,ref_fp_id)
+
+build_dna(df,'NEW_PDB.pdb',['A']*147)
+print df.head()
+
+# df2.to_csv('../analysis_data/dna2_param_df_cryst.csv',index=False)
+
+
+
+print "Execution time:"
+print(datetime.now()-startTime)
+
+# exit
+exit()
+
+

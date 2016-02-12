@@ -1,0 +1,28 @@
+
+
+
+
+molecule m,m2;
+int seqlen;
+string	seq;
+atom a;
+
+seq = argv[2];
+// seq="ATGCATG";
+seqlen = length(seq);
+
+m2=fd_helix("lbdna",seq,"dna");
+// for (a in m2) 
+// {
+
+// printf("%s ", a.strandname);
+// }
+
+// mergestr( m, "A", "first", m2, "1", "last" );
+// mergestr( m, "B", "first", m2, "2", "last" );
+
+putpdb( argv[3], m2 );
+
+
+
+

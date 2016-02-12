@@ -1,0 +1,87 @@
+# Display settings
+display ambientoclussion on
+display shadows on
+display antialias on
+display resize 800 600
+display eyesep       0.065000
+display focallength  6.000000
+display height       6.000000
+display distance     -2.000000
+display projection   Orthographic
+display nearclip set 0.500000
+display farclip  set 10.000000
+display depthcue   on
+display cuestart   0.500000
+display cueend     10.000000
+display cuedensity 0.320000
+display cuemode    Linear
+color Display Background white
+
+#Задаем значения ГЛБ в массив
+set aa(TRP) 1.000
+set aa(ILE) 0.890
+set aa(PHE) 0.886
+set aa(LEU) 0.861
+set aa(MET) 0.749
+set aa(VAL) 0.745
+set aa(CYS) 0.696
+set aa(TYR) 0.682
+set aa(PRO) 0.495
+set aa(ALA) 0.521
+set aa(THR) 0.508
+set aa(HIS) 0.477
+set aa(GLY) 0.445
+set aa(SER) 0.436
+set aa(GLN) 0.391
+set aa(ASN) 0.302
+set aa(LYS) 0.201
+set aa(ARG) 0.197
+set aa(GLU) 0.020
+set aa(ASP) 0.000
+
+#Задаем максимальные и минимальные значения цветов палитры аминокислот в RGB 
+# r(ed) g(reen) b(lue) 0 значения для полярных 255 значения для неполярных
+set rh0 0
+set gh0 72
+set bh0 255
+set rh1 255
+set gh1 227
+set bh1 0
+
+set r0 [expr {double($rh0)/255} ]
+set r1 [expr {double($rh1)/255} ]
+set g0 [expr {double($gh0)/255} ]
+set g1 [expr {double($gh1)/255} ]
+set b0 [expr {double($bh0)/255} ]
+set b1 [expr {double($bh1)/255} ]
+
+set num 40
+foreach i [lsort [array names aa] ] {
+color Resname $i $num
+color change rgb $num [expr $r0+$aa($i)*($r1-$r0)] [expr $g0+$aa($i)*($g1-$g0)] [expr $b0+$aa($i)*($b1-$b0)]
+incr num 1
+}
+mol new 1KX5.pdb type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation MSMS 1.400000 8.000
+mol color ResName
+mol selection {all and protein}
+mol material AOShiny
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+scale by 1.5
+
+#градиент бета0.1
+mol new
+mol fix 1
+set lines 400 
+for {set n 0} {$n < $lines} {incr n 1} {
+#цвета градиента заданы в палитре аминокислот
+color change rgb [expr 70+$n] [expr {$r1-(double($n)/($lines-1))*($r1-$r0)}] [expr {$g1-(double($n)/($lines-1))*($g1-$g0)}] [expr {$b1-(double($n)/($lines-1))*($b1-$b0)}]
+draw color [expr 70+$n]
+draw line " -1.3 [expr {-0.5+(double($n)/($lines-1))} ] 0 " " -1.2 [expr {-0.5+(double($n)/($lines-1))} ] 0 " width 2
+}
+

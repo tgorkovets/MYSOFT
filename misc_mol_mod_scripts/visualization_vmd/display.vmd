@@ -1,0 +1,79 @@
+#!/usr/local/bin/vmd
+# VMD script written by save_state $Revision: 1.44 $
+# VMD version: 1.9
+
+display ambientoclussion on
+display shadows on
+display antialias on
+display resize 900 900
+
+vmdrestoremymaterials
+# Display settings
+display eyesep       0.065000
+display focallength  2.000000
+display height       3.000000
+display distance     -2.000000
+display projection   Orthographic
+display nearclip set 0.500000
+display farclip  set 10.000000
+display depthcue   off
+display cuestart   0.500000
+display cueend     10.000000
+display cuedensity 0.400000
+display cuemode    Exp2
+
+mol new {big_AP_1l.pdb} type pdb first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+
+mol representation Cartoon 2.100000 12.000000 9.000000
+mol color ColorID 7
+mol selection {sheet }
+mol material AOShiny
+mol addrep top
+mol selupdate 0 top 0
+mol colupdate 0 top 0
+mol scaleminmax top 0 0.000000 0.000000
+mol smoothrep top 0 0
+
+mol representation VDW 1.000000 8.000000
+mol color ColorID 1
+mol selection {resname TI1 TI2 TI3 TI4  and  noh}
+mol material AOChalky
+mol addrep top
+mol selupdate 1 top 0
+mol colupdate 1 top 0
+mol scaleminmax top 1 0.000000 0.000000
+mol smoothrep top 1 0
+
+
+mol representation VDW 1.000000 8.000000
+mol color ColorID 4
+mol selection {resname N3C PHE   and  noh}
+mol material AOChalky
+mol addrep top
+mol selupdate 2 top 0
+mol colupdate 2 top 0
+mol scaleminmax top 2 0.000000 0.000000
+
+
+
+color change rgb  0 0.1 0.2 0.7 ;# blue
+  color change rgb  1 0.7 0.2 0.1 ;# red
+  color change rgb  3 0.7 0.4 0.0 ;# orange
+  color change rgb  4 0.8 0.7 0.1 ;# yellow
+  color change rgb  7 0.1 0.7 0.2 ;# green
+  color change rgb 10 0.1 0.7 0.8 ;# cyan
+  color change rgb 11 0.6 0.1 0.6 ;# purple
+
+
+mol addfile {Trelax.dcd} type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol addfile {Theat.dcd} type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol addfile {Trelax_t.dcd} type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+source disp_t.tcl
+animate goto start
+rotate y by -90
+rotate z by 45
+scale by 1.25
+render Tachyon 1.t
+exit
