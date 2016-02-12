@@ -50,11 +50,11 @@ from Bio.SubsMat import MatrixInfo as matlist
 
 Entrez.email = "alexey.shaytan@nih.gov" 
 
-TEMP_DIR='/Users/alexeyshaytan/junk/temptemp'
-MUSCLE_BIN='/Users/alexeyshaytan/soft/bins/muscle'
-BLOSSUM_PATH='/Users/alexeyshaytan/soft/al2co/BLOSUM62.txt'
+TEMP_DIR=os.path.expanduser('~/junk/temptemp')
+MUSCLE_BIN=os.path.expanduser('~/soft/bins/muscle')
+BLOSSUM_PATH=os.path.expanduser('~/soft/al2co/BLOSUM62.txt')
 
-PATH_TO_AL2CO='/Users/alexeyshaytan/soft/al2co'
+PATH_TO_AL2CO=os.path.expanduser('~/soft/al2co')
 # os.environ['PATH']='/Users/alexeyshaytan/soft/al2co:/Users/alexeyshaytan/soft/x3dna-v2.1/bin:/Users/alexeyshaytan/soft/amber12/bin:/Users/alexeyshaytan/soft/sratoolkit/bin:/Users/alexeyshaytan/soft/bins/gromacs-4.6.3/bin:/opt/local/bin:/opt/local/sbin:/Users/alexeyshaytan/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/usr/local/ncbi/blast/bin:/usr/texbin'
 
 
