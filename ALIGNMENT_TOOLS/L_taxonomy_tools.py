@@ -123,6 +123,20 @@ def group_taxids(taxids,rank='species'):
         grouped_taxids.extend(group_taxids(list(non_class),new_rank))        
     return grouped_taxids
 
+def get_taxid_from_gbrec(seqrec):
+    """
+    Get taxid from GB seqrecrod in SeqRec Format
+    """
+    sources=[]
+    for f in seqrec.features:
+        if f.type=='source':
+            if f.qualifiers['db_xref'][0][0:6]=='taxon:':
+                sources.append(f.qualifiers['db_xref'][0][6:])
+    if len(sources)>0:
+        return sources[0]
+    else:
+        return None
+
 
 # def tax_filter_hist(hist_dataframe,clade_top_tax_id):
 #     """Should take a PANDAS list of histones and leave only those that are inside taxa"""

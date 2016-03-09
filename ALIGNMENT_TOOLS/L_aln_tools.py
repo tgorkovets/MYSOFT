@@ -116,6 +116,33 @@ def get_prot_seqrec_by_gis(gi_list):
     return(fasta_seqrec)
 
 
+def get_prot_gbrec_by_gis(gi_list):
+    """
+    Download a dictionary of fasta GenBank Rec from NCBI given a list of GIs.
+    """
+
+    print("Downloading FASTA SeqRecords by GIs from NCBI")
+    num=len(gi_list)
+    fasta_seqrec=dict()
+    for i in range(int(num/1000)+1):
+        while True:
+            try:
+                print("Fetching %d th thousands from %d"%(i,num))
+                strn = ",".join(gi_list[i*1000:(i+1)*1000])
+                request=Entrez.epost(db="protein",id=strn)
+                result=Entrez.read(request)
+                webEnv=result["WebEnv"]
+                queryKey=result["QueryKey"]
+                handle=Entrez.efetch(db="protein",rettype='gb',retmode='text',webenv=webEnv, query_key=queryKey)
+                for r in SeqIO.parse(handle,'gb'):
+                    print r.features[0].qualifiers['db_xref']
+                    fasta_seqrec[r.annotations['gi']]=r
+            except:
+                    continue
+            break
+    print("FASTA Records downloaded:")
+    print(len(fasta_seqrec))
+    return(fasta_seqrec)
 
 
 
@@ -419,7 +446,7 @@ def taxo_msa(outfile='taxo_msa.svg',taxids=[],annotation='',msa=[],title='',widt
 
     # msa_dict={i.id:i.seq for i in msa_tr}
     ncbi = NCBITaxa()
-
+    taxids=map(int,taxids)
 
     t = ncbi.get_topology(taxids,intermediate_nodes=False)
     a=t.add_child(name='annotation')
