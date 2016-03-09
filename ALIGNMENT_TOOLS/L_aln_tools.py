@@ -70,7 +70,7 @@ def get_prot_seq_by_gis(gi_list):
         while True:
             try:
                 print("Fetching %d th thousands from %d"%(i,num))
-                strn = ",".join(gi_list[i*1000:(i+1)*1000])
+                strn = ",".join(map(str,gi_list[i*1000:(i+1)*1000]))
                 request=Entrez.epost(db="protein",id=strn)
                 result=Entrez.read(request)
                 webEnv=result["WebEnv"]
