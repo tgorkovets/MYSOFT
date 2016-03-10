@@ -6,12 +6,16 @@ Retrive from NCBI by gis, align with MUSCLE,
 profiles with AL2CO.
 Trim alignemnt to show only postitions found in another sequence.
 
+Now extended to do taxo_msa
+and also just to display a set of annotated sequences on taxonomy 
 """
 import uuid
 from Bio import ExPASy
 from Bio import SwissProt
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from Bio import SearchIO
+from Bio.SeqFeature import SeqFeature, FeatureLocation
 import os
 import sys
 from Bio import AlignIO
@@ -55,7 +59,7 @@ MUSCLE_BIN=os.path.expanduser('~/soft/bins/muscle')
 BLOSSUM_PATH=os.path.expanduser('~/soft/al2co/BLOSUM62.txt')
 
 PATH_TO_AL2CO=os.path.expanduser('~/soft/al2co')
-# os.environ['PATH']='/Users/alexeyshaytan/soft/al2co:/Users/alexeyshaytan/soft/x3dna-v2.1/bin:/Users/alexeyshaytan/soft/amber12/bin:/Users/alexeyshaytan/soft/sratoolkit/bin:/Users/alexeyshaytan/soft/bins/gromacs-4.6.3/bin:/opt/local/bin:/opt/local/sbin:/Users/alexeyshaytan/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/usr/local/ncbi/blast/bin:/usr/texbin'
+os.environ['PATH']='/Users/alexeyshaytan/soft/hmmer3.0/bin:/Users/alexeyshaytan/soft/al2co:/Users/alexeyshaytan/soft/x3dna-v2.1/bin:/Users/alexeyshaytan/soft/amber12/bin:/Users/alexeyshaytan/soft/sratoolkit/bin:/Users/alexeyshaytan/soft/bins/gromacs-4.6.3/bin:/opt/local/bin:/opt/local/sbin:/Users/alexeyshaytan/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/usr/local/ncbi/blast/bin:/usr/texbin'+os.path.sep+os.environ['PATH']
 
 
 def get_prot_seq_by_gis(gi_list):
@@ -490,6 +494,100 @@ def taxo_msa(outfile='taxo_msa.svg',taxids=[],annotation='',msa=[],title='',widt
     ts.show_leaf_name = False
     ts.title.add_face(TextFace(title, fsize=20), column=0)
     t.render(outfile, w=width, dpi=300, tree_style=ts)
+
+def gen_fake_msa(seqreclist):
+    """
+    Fake an MSA by adding dashes to the end of sequences up to maximum length and 
+    return it as an MSA
+    """
+    mlength=max(map(len,seqreclist))
+    newseqreclist=list()
+    for s in seqreclist:
+        l=mlength-len(s.seq)
+        newseqreclist.append(SeqRecord(id=s.id,name=s.name,seq=Seq(str(s.seq)+'-'*l)))
+    msa=MultipleSeqAlignment(newseqreclist)
+    return msa
+
+
+def features_via_hmm(seq,hmmdb,eval_thresh=1):
+    
+    """
+    This function takes a Seq, runs hmmscan against a compressed hmmdb (prepare with hmmpress)
+    and output a list of biobython SeqFeature.
+    #Needs strictly HMMER 3.0!!!!
+    """
+    features=list()
+    ufn=str(uuid.uuid4())
+    SeqIO.write([SeqRecord(seq,id='QUERY',name='QUERY',description="QUERY")],ufn+'.fasta','fasta')
+    subprocess.call(["hmmscan","-o",ufn+".out","--tblout",ufn+".tbl","--domtblout",ufn+".dtbl",hmmdb,ufn+'.fasta'])
+    #Now let's read it
+
+    for v in SearchIO.parse(ufn+".dtbl", "hmmscan3-domtab"):
+        for hit in v:
+            for h in hit.hsps:
+                print h
+                features.append(SeqFeature(FeatureLocation(h.query_start,h.query_end), type="domain",qualifiers={'name':h.hit_id,'evalue':h.evalue}))
+
+
+    os.system("rm %s %s %s %s"%(ufn+'.fasta',ufn+'.out',ufn+'.tbl',ufn+'.dtbl'))
+    return features
+
+
+def taxo_seq_architecture(outfile='taxo_msa.svg',taxids=[],annotation='',msa=[],title='',width=2000):
+    """
+    Visualize MSA together with a taxonomy tree
+    taxids - list of taxids in the same order as seqs in msa
+    """
+    # taxid2gi={f_df.loc[f_df.gi==int(gi),'taxid'].values[0]:gi for gi in list(f_df['gi'])}
+    # gi2variant={gi:f_df.loc[f_df.gi==int(gi),'hist_var'].values[0] for gi in list(f_df['gi'])}
+
+    # msa_dict={i.id:i.seq for i in msa_tr}
+    ncbi = NCBITaxa()
+    taxids=map(int,taxids)
+
+    t = ncbi.get_topology(taxids,intermediate_nodes=False)
+    a=t.add_child(name='annotation')
+    a.add_feature('sci_name','annotation')
+    t.sort_descendants(attr='sci_name')
+    ts = TreeStyle()
+    def layout(node):
+        # print node.rank
+        # print node.sci_name
+        if getattr(node, "rank", None):
+            if(node.rank in ['order','class','phylum','kingdom']):   
+                rank_face = AttrFace("sci_name", fsize=7, fgcolor="indianred")
+                node.add_face(rank_face, column=0, position="branch-top")
+        if node.is_leaf():
+            sciname_face = AttrFace("sci_name", fsize=9, fgcolor="steelblue")
+            node.add_face(sciname_face, column=0, position="branch-right")
+        if node.is_leaf() and not node.name=='annotation':
+            s=str(msa[taxids.index(int(node.name))].seq)
+            seqFace = SeqMotifFace(s,[[0,len(s), "seq", 10, 10, None, None, None]],scale_factor=1)
+            add_face_to_node(seqFace, node, 0, position="aligned")
+            # gi=taxid2gi[int(node.name)]
+            add_face_to_node(TextFace(' '+msa[taxids.index(int(node.name))].id),node,column=1, position = "aligned")
+            # add_face_to_node(TextFace('      '+str(int(node.name))+' '),node,column=2, position = "aligned")
+            # add_face_to_node(TextFace('      '+str(gi2variant[gi])+' '),node,column=3, position = "aligned")
+
+        if node.is_leaf() and node.name=='annotation':
+            if(annotation):
+                s=annotation
+                # get_hist_ss_in_aln_as_string(msa_tr)
+            else:
+                s=' '*len(msa[0].seq)
+            seqFace = SeqMotifFace(s,[[0,len(s), "seq", 10, 10, None, None, None]],scale_factor=1)
+            add_face_to_node(seqFace, node, 0, position="aligned")
+            add_face_to_node(TextFace(' '+'SEQ_ID'),node,column=1, position = "aligned")
+            # add_face_to_node(TextFace('       '+'NCBI_TAXID'+' '),node,column=2, position = "aligned")
+            # add_face_to_node(TextFace('       '+'Variant'+'       '),node,column=3, position = "aligned")
+
+
+
+    ts.layout_fn = layout
+    ts.show_leaf_name = False
+    ts.title.add_face(TextFace(title, fsize=20), column=0)
+    t.render(outfile, w=width, dpi=300, tree_style=ts)
+
 
 
 if __name__ == '__main__':
