@@ -509,7 +509,7 @@ def gen_fake_msa(seqreclist):
     return msa
 
 
-def features_via_hmm(seq,hmmdb,eval_thresh=1):
+def features_via_hmm(seq,hmmdb,eval_thresh=1.0):
     
     """
     This function takes a Seq, runs hmmscan against a compressed hmmdb (prepare with hmmpress)
@@ -525,29 +525,41 @@ def features_via_hmm(seq,hmmdb,eval_thresh=1):
     for v in SearchIO.parse(ufn+".dtbl", "hmmscan3-domtab"):
         for hit in v:
             for h in hit.hsps:
-                print h
-                features.append(SeqFeature(FeatureLocation(h.query_start,h.query_end), type="domain",qualifiers={'name':h.hit_id,'evalue':h.evalue}))
+                # print h
+                if h.evalue<eval_thresh:
+                    features.append(SeqFeature(FeatureLocation(h.query_start,h.query_end), type="domain",qualifiers={'name':h.hit_id,'evalue':h.evalue}))
 
 
     os.system("rm %s %s %s %s"%(ufn+'.fasta',ufn+'.out',ufn+'.tbl',ufn+'.dtbl'))
     return features
 
 
-def taxo_seq_architecture(outfile='taxo_msa.svg',taxids=[],annotation='',msa=[],title='',width=2000):
+def taxo_seq_architecture(seqreclist=[],outfile='taxo_arch.svg',taxids=[],annotation='',title='',width=2000):
     """
-    Visualize MSA together with a taxonomy tree
-    taxids - list of taxids in the same order as seqs in msa
-    """
-    # taxid2gi={f_df.loc[f_df.gi==int(gi),'taxid'].values[0]:gi for gi in list(f_df['gi'])}
-    # gi2variant={gi:f_df.loc[f_df.gi==int(gi),'hist_var'].values[0] for gi in list(f_df['gi'])}
+    Visualize sequence architecture together with a taxonomy tree
+    seqreclist - contains a list of seqres.
+    each seqrec should have a list of features in biobython SeqFeature format.
 
-    # msa_dict={i.id:i.seq for i in msa_tr}
+    features of type "domain" will be plotted as boxes 
+    features of type "xxxx" will be plotted as ...
+
+    taxids - list of taxids in the same order as seqs in msa, if now provided will assume that seqrecs
+    are in genbank format and attempt to get taxids from there.
+    """
+
+    def get_color(str):
+        colorlist=['red','green','lightblue','yellow','cyan','magenta','gray']
+        return colorlist[hash(str)%6]
+
+    if len(taxids)==0:
+        taxids=map(get_taxid_from_gbrec,seqreclist)
+
     ncbi = NCBITaxa()
     taxids=map(int,taxids)
 
     t = ncbi.get_topology(taxids,intermediate_nodes=False)
-    a=t.add_child(name='annotation')
-    a.add_feature('sci_name','annotation')
+    # a=t.add_child(name='annotation')
+    # a.add_feature('sci_name','annotation')
     t.sort_descendants(attr='sci_name')
     ts = TreeStyle()
     def layout(node):
@@ -561,23 +573,36 @@ def taxo_seq_architecture(outfile='taxo_msa.svg',taxids=[],annotation='',msa=[],
             sciname_face = AttrFace("sci_name", fsize=9, fgcolor="steelblue")
             node.add_face(sciname_face, column=0, position="branch-right")
         if node.is_leaf() and not node.name=='annotation':
-            s=str(msa[taxids.index(int(node.name))].seq)
-            seqFace = SeqMotifFace(s,[[0,len(s), "seq", 10, 10, None, None, None]],scale_factor=1)
+            #here we are adding faces and we need to play with seqmotif face
+            seq=str(seqreclist[taxids.index(int(node.name))].seq)
+            motifs=[]#[[0,len(seq), "seq", 10, 10, None, None, None]]
+            for f in seqreclist[taxids.index(int(node.name))].features:
+                if f.type=='domain':
+                    motifs.append([f.location.start,f.location.end,"[]",None,10,"blue", get_color(f.qualifiers['name']), "arial|8|black|%s"%f.qualifiers['name']])
+                if f.type=='motif':
+                    motifs.append([f.location.start,f.location.end,"seq",10,10,None, None,None])
+            seqFace = SeqMotifFace(seq,motifs,scale_factor=1,seq_format="[]")
+
+
             add_face_to_node(seqFace, node, 0, position="aligned")
             # gi=taxid2gi[int(node.name)]
-            add_face_to_node(TextFace(' '+msa[taxids.index(int(node.name))].id),node,column=1, position = "aligned")
+            add_face_to_node(TextFace(' '+seqreclist[taxids.index(int(node.name))].id),node,column=1, position = "aligned")
             # add_face_to_node(TextFace('      '+str(int(node.name))+' '),node,column=2, position = "aligned")
             # add_face_to_node(TextFace('      '+str(gi2variant[gi])+' '),node,column=3, position = "aligned")
 
+
+        #We currently disable annotation
         if node.is_leaf() and node.name=='annotation':
             if(annotation):
                 s=annotation
                 # get_hist_ss_in_aln_as_string(msa_tr)
             else:
-                s=' '*len(msa[0].seq)
-            seqFace = SeqMotifFace(s,[[0,len(s), "seq", 10, 10, None, None, None]],scale_factor=1)
-            add_face_to_node(seqFace, node, 0, position="aligned")
-            add_face_to_node(TextFace(' '+'SEQ_ID'),node,column=1, position = "aligned")
+                s=' '*max(map(lambda x: len(x.seq),seqreclist))
+            # seqFace = SeqMotifFace(s,[[0,len(s), "seq", 10, 10, None, None, None]],scale_factor=1)
+            # add_face_to_node(seqFace, node, 0, position="aligned")
+            # add_face_to_node(TextFace(' '+'SEQ_ID'),node,column=1, position = "aligned")
+
+
             # add_face_to_node(TextFace('       '+'NCBI_TAXID'+' '),node,column=2, position = "aligned")
             # add_face_to_node(TextFace('       '+'Variant'+'       '),node,column=3, position = "aligned")
 
