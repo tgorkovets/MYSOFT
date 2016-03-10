@@ -137,6 +137,61 @@ def get_taxid_from_gbrec(seqrec):
     else:
         return None
 
+def gbrec_to_clickhtml(seqreclist,filename='seqrecdata.html',title=''):
+    """
+    Outputs an html file with seqrecord information and with clickable links.
+    """
+
+    style="""
+pre,td{margin: 0px;padding: 0px;border: 0px;}
+.pos{color:blue;}
+.neg{color:red;}
+.pol{color:green;}
+.hphob{color:grey;}
+.def{color:black;}
+.conserved{background:lightblue;}
+.nonconserved{background:white;}
+"""
+    text=''
+    for s in seqreclist:
+        line='<TR><TD><PRE><a href="http://www.ncbi.nlm.nih.gov/protein/?term={0}">{1:<{field1w}}</a></PRE></TD>'.format(s.id,s.id,field1w=17)
+        line+='<TD><PRE>{0}</PRE></TD>'.format(s.annotations['organism'])
+        line+='<TD><PRE>{0}</PRE></TD>'.format(s.description)
+
+        line+='</TR>'
+        text=text+line
+
+
+    a=open(filename,'w')
+    a.write("""
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<TITLE>SeqRecData</TITLE>
+<style>
+{style}
+</style>
+</HEAD>
+<BODY style="background-color:white; color:black; a:link:blue; a:active:red; a:visited:purple">
+{title}<BR><BR>
+
+<TABLE style="border:0px; border-spacing:0px; background-color:white; color:black; a:link:blue; a:active:red; a:visited:purple;">
+
+{text}
+
+</TABLE>
+</BODY>
+</HTML>
+""".format(\
+title=title,\
+text=text,\
+style=style
+))
+
+    a.close()
+
+
 
 # def tax_filter_hist(hist_dataframe,clade_top_tax_id):
 #     """Should take a PANDAS list of histones and leave only those that are inside taxa"""

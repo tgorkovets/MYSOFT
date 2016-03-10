@@ -555,8 +555,8 @@ def taxo_seq_architecture(seqreclist=[],outfile='taxo_arch.svg',taxids=[],annota
     aa=['A','R','N','D','C','Q','E','G','H','I','L','K','M','F','P','S','T','W','Y','V','B','Z','X','.','-']
     
     def get_color(str):
-        colorlist=['red','green','lightblue','yellow','cyan','magenta','gray']
-        return colorlist[hash(str)%6]
+        colorlist=['red','green','yellow','lightblue','cyan','magenta','orange','pink','lightgreen']
+        return colorlist[hash(str)%9]
 
     if len(taxids)==0:
         taxids=map(get_taxid_from_gbrec,seqreclist)
@@ -587,7 +587,7 @@ def taxo_seq_architecture(seqreclist=[],outfile='taxo_arch.svg',taxids=[],annota
                 if f.type=='domain':
                     motifs.append([f.location.start,f.location.end,"[]",None,10,"blue", get_color(f.qualifiers['name']), "arial|8|black|%s"%f.qualifiers['name']])
                 if f.type=='motif':
-                    motifs.append([f.location.start,f.location.end,"seq",10,10,"blue", "blue",None])
+                    motifs.append([f.location.start,f.location.end,"seq",10,10,"black",get_color(f.qualifiers['name']),None])
             seqFace = SeqMotifFace(seq,motifs,scale_factor=1,seq_format="[]")
             seqFace.overlaping_motif_opacity = 1.0
             # seqFace.fg=aafgcolors
