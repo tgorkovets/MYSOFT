@@ -8,6 +8,11 @@ Trim alignemnt to show only postitions found in another sequence.
 
 Now extended to do taxo_msa
 and also just to display a set of annotated sequences on taxonomy 
+
+Requirements:
+The taxo_seq_architecture to fully work requires the modified version of ete2 v.2.3.
+https://github.com/molsim/ete/tree/2.3
+
 """
 import uuid
 from Bio import ExPASy
@@ -38,7 +43,6 @@ import subprocess
 from ete2 import NCBITaxa
 from ete2 import Tree, SeqMotifFace, TreeStyle, add_face_to_node,AttrFace,TextFace
 # import pylab
-
 import networkx as nx
 from StringIO import StringIO
 import L_shade_hist_aln
@@ -51,6 +55,8 @@ from hist_ss import get_hist_ss_in_aln
  
 from Bio import pairwise2
 from Bio.SubsMat import MatrixInfo as matlist
+
+
 
 Entrez.email = "alexey.shaytan@nih.gov" 
 
@@ -546,7 +552,8 @@ def taxo_seq_architecture(seqreclist=[],outfile='taxo_arch.svg',taxids=[],annota
     taxids - list of taxids in the same order as seqs in msa, if now provided will assume that seqrecs
     are in genbank format and attempt to get taxids from there.
     """
-
+    aa=['A','R','N','D','C','Q','E','G','H','I','L','K','M','F','P','S','T','W','Y','V','B','Z','X','.','-']
+    
     def get_color(str):
         colorlist=['red','green','lightblue','yellow','cyan','magenta','gray']
         return colorlist[hash(str)%6]
@@ -582,7 +589,9 @@ def taxo_seq_architecture(seqreclist=[],outfile='taxo_arch.svg',taxids=[],annota
                 if f.type=='motif':
                     motifs.append([f.location.start,f.location.end,"seq",10,10,"blue", "blue",None])
             seqFace = SeqMotifFace(seq,motifs,scale_factor=1,seq_format="[]")
-
+            seqFace.overlaping_motif_opacity = 1.0
+            # seqFace.fg=aafgcolors
+            # seqFace.bg=aabgcolors_gray
 
             add_face_to_node(seqFace, node, 0, position="aligned")
             # gi=taxid2gi[int(node.name)]
