@@ -580,13 +580,13 @@ def taxo_seq_architecture(seqreclist=[],outfile='taxo_arch.svg',taxids=[],annota
                 if f.type=='domain':
                     motifs.append([f.location.start,f.location.end,"[]",None,10,"blue", get_color(f.qualifiers['name']), "arial|8|black|%s"%f.qualifiers['name']])
                 if f.type=='motif':
-                    motifs.append([f.location.start,f.location.end,"seq",10,10,None, None,None])
+                    motifs.append([f.location.start,f.location.end,"seq",10,10,"blue", "blue",None])
             seqFace = SeqMotifFace(seq,motifs,scale_factor=1,seq_format="[]")
 
 
             add_face_to_node(seqFace, node, 0, position="aligned")
             # gi=taxid2gi[int(node.name)]
-            add_face_to_node(TextFace(' '+seqreclist[taxids.index(int(node.name))].id),node,column=1, position = "aligned")
+            add_face_to_node(TextFace(' '+seqreclist[taxids.index(int(node.name))].id+'         '),node,column=1, position = "aligned")
             # add_face_to_node(TextFace('      '+str(int(node.name))+' '),node,column=2, position = "aligned")
             # add_face_to_node(TextFace('      '+str(gi2variant[gi])+' '),node,column=3, position = "aligned")
 
