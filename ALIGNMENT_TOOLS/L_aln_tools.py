@@ -587,7 +587,46 @@ def taxo_seq_architecture(seqreclist=[],outfile='taxo_arch.svg',taxids=[],annota
                 if f.type=='domain':
                     motifs.append([f.location.start,f.location.end,"[]",None,10,"blue", get_color(f.qualifiers['name']), "arial|8|black|%s"%f.qualifiers['name']])
                 if f.type=='motif':
-                    motifs.append([f.location.start,f.location.end,"seq",10,10,"black",get_color(f.qualifiers['name']),None])
+                    #It turns out that we need to solve overlap problem here, here it is solved only in case of one overlap
+                    s=f.location.start
+                    e=f.location.end
+                    flag=True
+                    overlappedm=[]
+                    for m in motifs:
+                        if m[2]=='seq' and m[0]<e and m[1]>s: #we have an overlap, four cases, preceding motife always is on top
+                            flag=False
+                            overlappedm.append(m)
+                    if not flag: #we have to solve multiple overlap problem
+                    #let's do it by scanning
+                        sflag=False
+                        eflag=False
+                        for x in range(s,e+1):
+                            if not sflag: #check if we can start
+                                overlap=False
+                                for m in overlappedm:
+                                    if x>=m[0] and x<m[1]:
+                                        overlap=True
+                                if not overlap:
+                                    ts=x
+                                    sflag=True
+
+                            #check if is time to end
+                            if sflag and not eflag:
+                                overlap=False
+                                for m in overlappedm:
+                                    if x==m[0]:
+                                        overlap=True
+                                if overlap or x==e:
+                                    te=x
+                                    eflag=True
+
+
+                            if sflag and eflag:
+                                motifs.append([ts,te,"seq",10,10,"black",get_color(f.qualifiers['name']),None])
+                                sflag=False
+                                eflag=False
+                    if flag:
+                        motifs.append([f.location.start,f.location.end,"seq",10,10,"black",get_color(f.qualifiers['name']),None])
             seqFace = SeqMotifFace(seq,motifs,scale_factor=1,seq_format="[]")
             seqFace.overlaping_motif_opacity = 1.0
             # seqFace.fg=aafgcolors
