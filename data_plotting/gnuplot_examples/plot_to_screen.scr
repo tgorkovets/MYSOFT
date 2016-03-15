@@ -1,0 +1,26 @@
+# Gnuplot script file for plotting data in gromacs xvg files
+# plot to screen usage: gnuplot -persist this_script_name
+
+set terminal x11 enhanced
+set datafile commentschars "#@"
+set mouse
+set   autoscale                        # scale axes automatically
+unset log                              # remove any log-scaling
+unset label                            # remove any previous labels
+set xtic auto                          # set xtics automatically
+set ytic auto                          # set ytics automatically
+set title "Diffusion of water molecules\n in direction normal to the slab"
+set xlabel "Time, ps"
+set ylabel "Mean square displacement, nm^2"
+set xrange [0:8000]
+set grid
+#set size 0.7,0.7 # figure smaller -> text bigger
+#set key 0.01,100
+#set label "Yield Point" at 0.003,260
+#      set arrow from 0.0028,250 to 0.003,280
+#      set xr [0.0:0.022]
+#      set yr [0:325]
+#plot    "force.dat" using 1:2 title 'Column' with linespoints , \
+#            "force.dat" using 1:3 title 'Beam' with points
+plot    "msd_x_long.xvg" using 1:2 notitle with lines lw 3 lt 18
+pause -1

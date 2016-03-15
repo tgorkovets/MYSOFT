@@ -1,0 +1,6 @@
+# Gnuplot script file for plotting data in gromacs xvg files
+# plot to screen usage: gnuplot -persist this_script_name
+
+set terminal postscript eps enhanced colour "Times-Roman" 20
+set output "test.eps"
+test
