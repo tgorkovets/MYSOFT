@@ -143,7 +143,7 @@ features - a list of dictionaries:
 \end{document} """)
     a.close()
 
-    command='/usr/texbin/pdflatex --file-line-error --synctex=1 -output-directory=%s --save-size=10000  %s/align.tex > /dev/null'%(TEMP_DIR,TEMP_DIR)
+    command='/usr/bin/env pdflatex --file-line-error --synctex=1 -output-directory=%s --save-size=10000  %s/align.tex > /dev/null'%(TEMP_DIR,TEMP_DIR)
 
     print('Launcning Latex:')
     print(command)
